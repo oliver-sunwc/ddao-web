@@ -455,6 +455,167 @@ def best():
 
     return jsonify(bestJSON)
 
+@app.route("/api/data/rig/best/<int:numRigs>")
+def bestGPUs(numRigs):
+    bestJSON = []
+    rigRows = [
+        "Monthly Income in Crypto",
+        "Monthly Income ($)",
+        "Monthly Electricity Cost ($)",
+        "Monthly Gross Margin ($)",
+        "Monthly Gross ROI",
+        "Rig Amortization Per Month",
+        "Support and Management Fee (5%)",
+        "Monthly Net Income",
+        "Monthly Net ROI",
+        "Electricity Per Month (kWh)"
+    ]
+
+    for header in rigRows:
+        bestJSON.append({"Header": header, "gpu" : {}})
+
+    top1 = -999999
+    top2 = -999999
+    no1 = ""
+    no2 = ""
+    p1 = 0
+    p2 = 0
+
+    for gpu in gpuJSON:
+        bestJSON[0]["gpu"][gpu["Name"]] = float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["24h"])*8*365*numRigs/12
+        bestJSON[1]["gpu"][gpu["Name"]] = float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["24hUSD"])*8*365*numRigs/12
+        bestJSON[2]["gpu"][gpu["Name"]] = rigJSON[2]["gpu"][gpu["Name"]][rigJSON[8]["gpu"][gpu["Name"]]["best"]] = (float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["Power"])*8+300)/1000*24*0.1*365*numRigs/12
+        bestJSON[3]["gpu"][gpu["Name"]] = bestJSON[1]["gpu"][gpu["Name"]] - bestJSON[2]["gpu"][gpu["Name"]]
+        bestJSON[4]["gpu"][gpu["Name"]] = bestJSON[3]["gpu"][gpu["Name"]]/((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+        bestJSON[5]["gpu"][gpu["Name"]] = (gpu["Price"]*8 + gpu["Server Price"])/5*numRigs/12
+        bestJSON[6]["gpu"][gpu["Name"]] = bestJSON[1]["gpu"][gpu["Name"]]*0.05
+        bestJSON[7]["gpu"][gpu["Name"]] = bestJSON[3]["gpu"][gpu["Name"]] - bestJSON[5]["gpu"][gpu["Name"]] - bestJSON[6]["gpu"][gpu["Name"]]
+        bestJSON[8]["gpu"][gpu["Name"]] = bestJSON[7]["gpu"][gpu["Name"]]/((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+        bestJSON[9]["gpu"][gpu["Name"]] = bestJSON[2]["gpu"][gpu["Name"]]/0.1
+
+        
+
+
+        sym = ""
+        for coin in coinJSON:
+            if rigJSON[8]["gpu"][gpu["Name"]]["best"] == coin['Name']:
+                sym = coin['Symbol'].upper()
+
+        if bestJSON[8]["gpu"][gpu["Name"]] > top1:
+            top1 = bestJSON[8]["gpu"][gpu["Name"]]
+            no1 = gpu["Name"]
+            print("no1 " + no1)
+
+            bestJSON[0]["no1"] = float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["24h"])*8*365*numRigs/12
+            bestJSON[1]["no1"] = float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["24hUSD"])*8*365*numRigs/12
+            bestJSON[2]["no1"] = (float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["Power"])*8+300)/1000*24*0.1*365*numRigs/12
+            bestJSON[3]["no1"] = bestJSON[1]["gpu"][gpu["Name"]] - bestJSON[2]["gpu"][gpu["Name"]]
+            bestJSON[4]["no1"] = bestJSON[3]["gpu"][gpu["Name"]]/((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+            p1 = ((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+            bestJSON[5]["no1"] = (gpu["Price"]*8 + gpu["Server Price"])/5*numRigs/12
+            bestJSON[6]["no1"] = bestJSON[1]["gpu"][gpu["Name"]]*0.05
+            bestJSON[7]["no1"] = bestJSON[3]["gpu"][gpu["Name"]] - bestJSON[5]["gpu"][gpu["Name"]] - bestJSON[6]["gpu"][gpu["Name"]]
+            bestJSON[8]["no1"] = bestJSON[7]["gpu"][gpu["Name"]]/((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+            bestJSON[9]["no1"] = bestJSON[2]["gpu"][gpu["Name"]]/0.1
+
+            for header in bestJSON:
+                header["no1name"] = no1
+                header["no1coin"] = sym
+        
+    for gpu in gpuJSON:
+        sym = ""
+        for coin in coinJSON:
+            if rigJSON[8]["gpu"][gpu["Name"]]["best"] == coin['Name']:
+                sym = coin['Symbol'].upper()
+
+        if bestJSON[8]["gpu"][gpu["Name"]] > top2 and bestJSON[8]["gpu"][gpu["Name"]] < top1:
+            top2 = bestJSON[8]["gpu"][gpu["Name"]]
+            no2 = gpu["Name"]
+            print("no2 " + no2)
+
+            bestJSON[0]["no2"] = float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["24h"])*8*365*numRigs/12
+            bestJSON[1]["no2"] = float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["24hUSD"])*8*365*numRigs/12
+            bestJSON[2]["no2"] = rigJSON[2]["gpu"][gpu["Name"]][rigJSON[8]["gpu"][gpu["Name"]]["best"]] = (float(gpu["Data"][rigJSON[8]["gpu"][gpu["Name"]]["best"]]["Power"])*8+300)/1000*24*0.1*365*1000/12
+            bestJSON[3]["no2"] = bestJSON[1]["gpu"][gpu["Name"]] - bestJSON[2]["gpu"][gpu["Name"]]
+            bestJSON[4]["no2"] = bestJSON[3]["gpu"][gpu["Name"]]/((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+            p2 = ((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+            bestJSON[5]["no2"] = (gpu["Price"]*8 + gpu["Server Price"])/5*numRigs/12
+            bestJSON[6]["no2"] = bestJSON[1]["gpu"][gpu["Name"]]*0.05
+            bestJSON[7]["no2"] = bestJSON[3]["gpu"][gpu["Name"]] - bestJSON[5]["gpu"][gpu["Name"]] - bestJSON[6]["gpu"][gpu["Name"]]
+            bestJSON[8]["no2"] = bestJSON[7]["gpu"][gpu["Name"]]/((gpu["Price"]*8 + gpu["Server Price"])*numRigs)
+            bestJSON[9]["no2"] = bestJSON[2]["gpu"][gpu["Name"]]/0.1
+
+            for header in bestJSON:
+                header["no2name"] = no2
+                header["no2coin"] = sym
+            
+    bestJSON[0]["total"] = '-'
+    bestJSON[1]["total"] = bestJSON[1]["no1"] + bestJSON[1]["no2"]
+    bestJSON[2]["total"] = bestJSON[2]["no1"] + bestJSON[2]["no2"]
+    bestJSON[3]["total"] = bestJSON[3]["no1"] + bestJSON[3]["no2"]
+    bestJSON[4]["total"] = bestJSON[3]["total"]/(p1+p2)
+    bestJSON[5]["total"] = bestJSON[5]["no1"] + bestJSON[5]["no2"]
+    bestJSON[6]["total"] = bestJSON[6]["no1"] + bestJSON[6]["no2"]
+    bestJSON[7]["total"] = bestJSON[7]["no1"] + bestJSON[7]["no2"]
+    bestJSON[8]["total"] = bestJSON[7]["total"]/(p1+p2)
+    bestJSON[9]["total"] = bestJSON[9]["no1"] + bestJSON[9]["no2"]
+
+
+    for gpu in gpuJSON: 
+        sym = ""
+        for coin in coinJSON:
+            if rigJSON[8]["gpu"][gpu["Name"]]["best"] == coin['Name']:
+                sym = coin['Symbol'].upper()
+
+        
+
+        bestJSON[0]["gpu"][gpu["Name"]] = str(bestJSON[0]["gpu"][gpu["Name"]]) + " " + sym
+        bestJSON[1]["gpu"][gpu["Name"]] = helpers.toCurrency(bestJSON[1]["gpu"][gpu["Name"]])
+        bestJSON[2]["gpu"][gpu["Name"]] = helpers.toCurrency(bestJSON[2]["gpu"][gpu["Name"]])
+        bestJSON[3]["gpu"][gpu["Name"]] = helpers.toCurrency(bestJSON[3]["gpu"][gpu["Name"]])
+        bestJSON[4]["gpu"][gpu["Name"]] = helpers.toPercent(bestJSON[4]["gpu"][gpu["Name"]])
+        bestJSON[5]["gpu"][gpu["Name"]] = helpers.toCurrency(bestJSON[5]["gpu"][gpu["Name"]])
+        bestJSON[6]["gpu"][gpu["Name"]] = helpers.toCurrency(bestJSON[6]["gpu"][gpu["Name"]])
+        bestJSON[7]["gpu"][gpu["Name"]] = helpers.toCurrency(bestJSON[7]["gpu"][gpu["Name"]])
+        bestJSON[8]["gpu"][gpu["Name"]] = helpers.toPercent(bestJSON[8]["gpu"][gpu["Name"]])
+        bestJSON[9]["gpu"][gpu["Name"]] = str(int(bestJSON[9]["gpu"][gpu["Name"]]))
+
+    bestJSON[0]["no1"] = str(bestJSON[0]["no1"]) + " " + bestJSON[0]["no1coin"]
+    bestJSON[1]["no1"] = helpers.toCurrency(bestJSON[1]["no1"])
+    bestJSON[2]["no1"] = helpers.toCurrency(bestJSON[2]["no1"])
+    bestJSON[3]["no1"] = helpers.toCurrency(bestJSON[3]["no1"])
+    bestJSON[4]["no1"] = helpers.toPercent(bestJSON[4]["no1"])
+    bestJSON[5]["no1"] = helpers.toCurrency(bestJSON[5]["no1"])
+    bestJSON[6]["no1"] = helpers.toCurrency(bestJSON[6]["no1"])
+    bestJSON[7]["no1"] = helpers.toCurrency(bestJSON[7]["no1"])
+    bestJSON[8]["no1"] = helpers.toPercent(bestJSON[8]["no1"])
+    bestJSON[9]["no1"] = str(int(bestJSON[9]["no1"]))
+
+    bestJSON[0]["no2"] = str(bestJSON[0]["no2"]) + " " + bestJSON[0]["no2coin"]
+    bestJSON[1]["no2"] = helpers.toCurrency(bestJSON[1]["no2"])
+    bestJSON[2]["no2"] = helpers.toCurrency(bestJSON[2]["no2"])
+    bestJSON[3]["no2"] = helpers.toCurrency(bestJSON[3]["no2"])
+    bestJSON[4]["no2"] = helpers.toPercent(bestJSON[4]["no2"])
+    bestJSON[5]["no2"] = helpers.toCurrency(bestJSON[5]["no2"])
+    bestJSON[6]["no2"] = helpers.toCurrency(bestJSON[6]["no2"])
+    bestJSON[7]["no2"] = helpers.toCurrency(bestJSON[7]["no2"])
+    bestJSON[8]["no2"] = helpers.toPercent(bestJSON[8]["no2"])
+    bestJSON[9]["no2"] = str(int(bestJSON[9]["no2"]))
+
+    bestJSON[1]["total"] = helpers.toCurrency(bestJSON[1]["total"])
+    bestJSON[2]["total"] = helpers.toCurrency(bestJSON[2]["total"])
+    bestJSON[3]["total"] = helpers.toCurrency(bestJSON[3]["total"])
+    bestJSON[4]["total"] = helpers.toPercent(bestJSON[4]["total"])
+    bestJSON[5]["total"] = helpers.toCurrency(bestJSON[5]["total"])
+    bestJSON[6]["total"] = helpers.toCurrency(bestJSON[6]["total"])
+    bestJSON[7]["total"] = helpers.toCurrency(bestJSON[7]["total"])
+    bestJSON[8]["total"] = helpers.toPercent(bestJSON[8]["total"])
+    bestJSON[9]["total"] = str(int(bestJSON[9]["total"]))
+        
+        
+
+    return jsonify(bestJSON)
+
 
 @app.route("/api/refresh")
 def refresh():
@@ -494,5 +655,5 @@ def refresh():
     recalc()
     return jsonify(rigJSON)
 
-
-app.run(host='localhost', debug=True)
+if __name__ == '__main__':
+    app.run(host='localhost', debug=True)

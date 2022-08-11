@@ -8,12 +8,14 @@ function App() {
   let gpuPrice = 499.0
   let numGPU = 8
   let serverCost = 400.0
+  let numRigs = 1000
   
 
   const [price, setPrice] = useState(gpuPrice)
   const [serverP, setServerP] = useState(serverCost)
+  const [rigs, setRigs] = useState(numRigs)
   const priceRef = useRef()
-  const rigRef = useRef()
+  const rigsRef = useRef()
 
   function calcPrice() {
     let rigP = price*numGPU
@@ -21,6 +23,22 @@ function App() {
     console.log(typeof(rigP))
     return rigP
   }
+
+  async function handleRigsChange(e) {
+    const r = rigsRef.current.value
+    rigsRef.current.value = null
+    const result = await axios("/api/data/rig/best/"+r)
+    console.log(result.data)
+    setData(result.data)
+    setRigs(r)
+}
+
+async function resetRigs(e) {
+    rigsRef.current.value = null
+    const result = await axios("/api/data/rig/best")
+    setData(result.data)
+    setRigs(numRigs)
+}
 
   // data state to store the API data. Its initial value is an empty array
   const [data, setData] = useState([]);
@@ -75,6 +93,10 @@ function App() {
 
   return (
     <>
+      <div># of Rigs: {rigs}</div>
+        <input ref={rigsRef} type="number"/>
+        <button onClick={handleRigsChange}>Change # of Rigs</button>
+        <button onClick={resetRigs}>Reset</button>
       <div className="App">
         <Table columns={columns} data={data} />
       </div>
