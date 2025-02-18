@@ -1,6 +1,8 @@
 # ddao-web
 
-set up the virtual environment for the flask api. in the ddao-web/api directory,
+This is a basic html interface for an Assistant API chatbot.
+
+Set up the virtual environment for the flask api. in the ddao-web/api directory,
 
 run
 
