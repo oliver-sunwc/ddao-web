@@ -22,6 +22,9 @@ On another terminal: Navigate to react-flask-app directory.
 Then in terminal: npm start
 
 
+To run in a linux environment:
+
+
 Set up the virtual environment for the flask api. in the ddao-web/api directory,
 
 run
